@@ -4,12 +4,21 @@ import time
 import re
 
 headline = ['#','##','###','####','#####','######']
+headline_pattern1 = re.compile(r"""[\d+].""", re.X)
+headline_pattern2 = re.compile(r"""[\d+].[\d+].""", re.X)
+headline_pattern3 = re.compile(r"""[\d+].[\d+].[\d+].""", re.X)
+headline_pattern4 = re.compile(r"""[\d+].[\d+].[\d+].[\d+].""", re.X)
+headline_pattern5 = re.compile(r"""[\d+].[\d+].[\d+].[\d+].[\d+].""", re.X)
+headline_pattern6 = re.compile(r"""[\d+].[\d+].[\d+].[\d+].[\d+].[\d+].""", re.X)
+headline_patterns = [headline_pattern1, headline_pattern2, headline_pattern3, headline_pattern4, headline_pattern5, headline_pattern6]
+
 title_sign_list = []
 """用于判断标题产生环境"""
 titles_added_number = []
 """保存嵌入了编号的标题，用于产生新编号"""
 is_continue = 'n'
 suf = '.'
+
 
 """给某一行添加编号"""
 def add_number_for_line(line_which_is_title,title_sign):
@@ -90,6 +99,8 @@ def add_number_for_line(line_which_is_title,title_sign):
                     return titles_added_number[-1]
 
 
+
+
 """给传入内容添加编号"""
 def create_lines_with_number(lines_in_file):
     for i in range(len(lines_in_file)):
@@ -99,15 +110,30 @@ def create_lines_with_number(lines_in_file):
     return lines_in_file
 
 
+"""给某一行添加编号"""
+def del_number_for_line(line_which_is_title,title_sign):
+    b = headline_patterns[len(title_sign) - 1].sub(' ', line_which_is_title)
+    return b
+
+"""如果已存在编号, 给传入内容删除编号"""
+def delete_lines_with_number(lines_in_file):
+    for i in range(len(lines_in_file)):
+        title_sign = lines_in_file[i].lstrip().split(' ')
+        if title_sign[0] in headline:
+            lines_in_file[i] = del_number_for_line(lines_in_file[i],title_sign[0])
+    return lines_in_file
+
+
 """生成添加了标题编号的文件"""
 def create_markdown_file_with_number(f,file_name):
     lines_in_file = []
     lines_in_file_with_number = []
     lines_in_file = f.readlines()
     f.close()
-    lines_in_file_with_number = create_lines_with_number(lines_in_file)
+    lines_in_file_origin = delete_lines_with_number(lines_in_file)
+    lines_in_file_with_number = create_lines_with_number(lines_in_file_origin)
     # 根据原文件名生成标题添加了序号的文件的文件名
-    markdown_file_with_number = os.getcwd() + '\\' + file_name[::-1].split('.',1)[1][::-1] + '_withNum.md'
+    markdown_file_with_number = os.getcwd() + os.path.sep + file_name[::-1].split('.',1)[1][::-1] + '_withNum.md'
     if not os.path.exists(markdown_file_with_number):
         with open(markdown_file_with_number, 'w+',encoding='utf-8') as f:
             for line in lines_in_file_with_number:
