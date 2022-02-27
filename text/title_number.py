@@ -4,14 +4,15 @@ import time
 import re
 
 headline = ['#','##','###','####','#####','######']
-headline_pattern1 = re.compile(r"""[\d+].""", re.X)
-headline_pattern2 = re.compile(r"""[\d+].[\d+].""", re.X)
-headline_pattern3 = re.compile(r"""[\d+].[\d+].[\d+].""", re.X)
-headline_pattern4 = re.compile(r"""[\d+].[\d+].[\d+].[\d+].""", re.X)
-headline_pattern5 = re.compile(r"""[\d+].[\d+].[\d+].[\d+].[\d+].""", re.X)
-headline_pattern6 = re.compile(r"""[\d+].[\d+].[\d+].[\d+].[\d+].[\d+].""", re.X)
+headline_pattern1 = re.compile(r"""[\d]{1,3}\.\s""", re.X)
+headline_pattern2 = re.compile(r"""[\d+]{1,3}\.[\d+]\.\s""", re.X)
+headline_pattern3 = re.compile(r"""[\d+]{1,3}\.[\d+]\.[\d+]\.\s""", re.X)
+headline_pattern4 = re.compile(r"""[\d+]{1,3}\.[\d+]\.[\d+]\.[\d+]\.\s""", re.X)
+headline_pattern5 = re.compile(r"""[\d+]{1,3}\.[\d+]\.[\d+]\.[\d+]\.[\d+]\.\s""", re.X)
+headline_pattern6 = re.compile(r"""[\d+]{1,3}\.[\d+]\.[\d+]\.[\d+]\.[\d+]\.[\d+]\.\s""", re.X)
 headline_patterns = [headline_pattern1, headline_pattern2, headline_pattern3, headline_pattern4, headline_pattern5, headline_pattern6]
 
+headline_number = re.compile(r"""[\d+]""", re.X)
 title_sign_list = []
 """用于判断标题产生环境"""
 titles_added_number = []
@@ -35,7 +36,7 @@ def add_number_for_line(line_which_is_title,title_sign):
         for title in titles_added_number[::-1]:
             number = title.lstrip().split(' ')[1]
             sign = title.lstrip().split(' ')[0]
-            if len(number) == 2 and number.count('.') == 1:#如果发现一级标题(序号为1.,2.,3.,...)
+            if number.count('.') == 1:#如果发现一级标题(序号为1.,2.,3.,...)
                 if len(title_sign) == len(sign):#如果line_which_is_title是一级标题（与发现的一级标题title级别相同）
                     titles_added_number.append(
                         line_which_is_title.replace(title_sign + ' ',title_sign + ' ' + str(int(number[:-1]) + 1) + '. '))
@@ -56,12 +57,13 @@ def add_number_for_line(line_which_is_title,title_sign):
                     break
         #当标题级别不是一级(序号不是1.,2.,3.,...)
         number = titles_added_number[-1].lstrip().split(' ')[1]
-        if len(number) == 2 and number.count('.') == 1:#如果line_which_is_title的上一级标题为一级标题(序号为1.,2.,3.,...)
+        if number.count('.') == 1:#如果line_which_is_title的上一级标题为一级标题(序号为1.,2.,3.,...)
             titles_added_number.append(
                 line_which_is_title.replace(
                     title_sign + ' ',title_sign + ' ' + number + '1' + suf + ' '))
             return titles_added_number[-1]
         elif len(title_sign_list[-1]) > len(title_sign_list[-2]):#如果line_which_is_title的上一个标题比它更高
+#            print("number1:" + str(number))
             number = re.search('(.*\.\d+)[^\d]?$', number).group(1)
             titles_added_number.append(
                 line_which_is_title.replace(
@@ -112,7 +114,7 @@ def create_lines_with_number(lines_in_file):
 
 """给某一行添加编号"""
 def del_number_for_line(line_which_is_title,title_sign):
-    b = headline_patterns[len(title_sign) - 1].sub(' ', line_which_is_title)
+    b = headline_patterns[len(title_sign) - 1].sub('', line_which_is_title) 
     return b
 
 """如果已存在编号, 给传入内容删除编号"""
